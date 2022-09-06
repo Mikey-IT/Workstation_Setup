@@ -97,7 +97,9 @@ $global:Remove = @"
 	</Configuration>
 "@
 # Rename PC
-function Prep-PC-Name ($PCName){Rename-Computer -NewName "$PCName"}
+function Prep-PC-Name ($PCName){
+    Rename-Computer -NewName "$PCName"
+}
 # Create User
 function Prep-PC-User ($UserName, $UserPass){
     Write-Verbose "Creating new local users" -Verbose
@@ -135,20 +137,16 @@ function Prep-PC {
 			Write-Host Winget Installed
 			Write-Host "Winget Installed - Ready for Next Task"
 		Start-Sleep -Seconds 2
-
     # Disable UAC
 		Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -Type DWord -Value 0
 		Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -Type DWord -Value 0
 		Write-Verbose "Disabled UAC" -Verbose
-
     # Disable Firewall
 		Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
 		Write-Verbose "Disabled Firewall" -Verbose
-
     # Enable RDP
 		Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -name "fDenyTSConnections" -Value 0
 		Write-Verbose "RDP Enabled" -Verbose
-
     # Set Power Plan to High Performance
 		powercfg /s 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
     # hibernate off
@@ -169,15 +167,12 @@ function Prep-PC {
     # To set lid close action on laptops (0=Do nothing - 1=Sleep - 2=Hibernate - 3=Shut down):
 		powercfg -setacvalueindex 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
 		powercfg -setdcvalueindex 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
-
     # Disable IPv6
 	    Get-NetAdapter | ForEach-Object {Disable-NetAdapterBinding -InterfaceAlias $_.Name -ComponentID ms_tcpip6}
-    
     # Disable automatic setup of network devices
    	 If (!(Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private")){
         New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Force | Out-Null}
 	    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\NcdAutoSetup\Private" -Name "AutoSetup" -Type DWord -Value 0
-
     # Remove TEAMS system wide installer
         Start-Process MsiExec.exe -ArgumentList '/X{39AF0813-FA7B-4860-ADBE-93B9B214B914} /qn' -Wait
         Start-Process MsiExec.exe -ArgumentList '/X{731F6BAA-A986-45A4-8936-7C3AAAAA760B} /qn' -Wait
@@ -208,15 +203,15 @@ function Prep-Laptop {
     # Clear Start Menu for new users
     	import-startlayout -layoutpath .\startlayout.xml -mountpath $Env:SYSTEMDRIVE\
 }
-# User Prep
+# Local User as Admin
 function Prep-Users-Localadmin {
     Add-LocalGroupMember -Group Administrators -Member "$env:USERDNSDOMAIN\Domain Users"
 }
+# Prep User experience
 function Prep-User {
 
     #Get-AppxPackage * | Remove-AppxPackage
     Write-Verbose "Removed windows apps"
-
     Get-AppXPackage -allusers Microsoft.Microsoft3DViewer | Remove-AppxPackage
     Get-AppXPackage -allusers Microsoft.WindowsAlarms | Remove-AppxPackage
     Get-AppXPackage -allusers Microsoft.WindowsFeedbackhub | Remove-AppxPackage
@@ -268,39 +263,19 @@ function Prep-User {
     Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCAMeetNow -Value 1
     # Remove News/Weather Icon from taskbar
     Set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds -Name ShellFeedsTaskbarViewMode -Value 2
-
     # Set Time Zone
     Set-TimeZone -Name "Eastern Standard Time"
-    # Set the locale for the region and language
-    #Get-WinSystemLocale
-    #Set-WinSystemLocale en-CA
-    # Set the locale for the region and language
-    Set-Culture -CultureInfo en-CA
-    # Set the region options to the current locale
-    #Set-WinCultureFromLanguageListOptOut 1
-    # Set the region options to "Match current language settings"
-    #Set-WinCultureFromLanguageListOptOut 0
 
     # Disable Action Center
     #Write-Verbose "Disabling Action Center..." -Verbose
-    If (!(Test-Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {
-        New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null
-    }
-    Set-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotIficationCenter -Type DWord -Value 1
-    Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotIfications -Name ToastEnabled -Type DWord -Value 0
-    # Control Panel to classic icons
-    If (!(Test-Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer")) {
-		New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Force | Out-Null
-	}
-	Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "ForceClassicControlPanel" -Type DWord -Value 1
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\ControlPanel" -Name "AllItemsIconView" -Type DWord -Value 0
-    Write-Verbose "Control Panel Icons Set" -Verbose
-    Write-Verbose "User Prep Complete" -Verbose}
-
+        If (!(Test-Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer")) {New-Item -Path "HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer" | Out-Null}
+        Set-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Windows\Explorer -Name DisableNotIficationCenter -Type DWord -Value 1
+        Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotIfications -Name ToastEnabled -Type DWord -Value 0
+}
 # Install .NET Framework
 function Prep-DotNET {
     Write-Verbose "Install .NET Framework" -Verbose
-    Add-WindowsCapability -Online -Name NetFx3~~~~
+    Enable-WindowsOptionalFeature -Online -FeatureName “NetFx3”
     Clear-Host
     Write-Verbose ".NET Framework Install Complete" -Verbose
     Clear-Host
@@ -318,7 +293,7 @@ function Prep-Chrome{
 }
 # Install Adobe Reader
 function Prep-Adobe{
-    $AdobeReaderCheck = Test-Path -Path ".\AcroRdrDC_en_US"
+    $AdobeReaderCheck = Test-Path -Path "C:\Program Files (x86)\Adobe\Adobe Reader DC"
     If($AdobeReaderCheck -eq $true){Start-Process ".\AcroRdrDC_en_US" "/sPB /rs" -wait
         Write-Verbose "Adobe Reader Installed" -Verbose}
     ElseIf($AdobeReaderCheck -eq $false){Write-Verbose "Local installer not found, installing..." -Verbose
@@ -334,9 +309,11 @@ function Prep-Lenovo-Update{
         Write-host "Lenovo System Update installed"-ForegroundColor green}
 }
 # BGInfo Installer
-function Prep-BGInfo {
+function Prep-BGInfo{
 	$BGInfoCheck = Test-path "C:\Admin\BGinfo*"
 	If($BGInfoCheck -eq $true){Write-host "BGInfo is already downloaded in the Admin folder"}
+    cd C:\Admin\BGInfo.exe
+    .\Bginfo64.exe UserBGInfoSettings /silent /timer:0 /nolicprompt
 	ElseIf($BGInfoCheck -eq $false){Write-host "BGInfo installer not found -- Downloading"
 		Invoke-WebRequest -uri https://github.com/Mikey-IT/Workstation_Setup/blob/main/Bginfo64.exe -OutFile C:\Admin\BGInfo.exe}
 }
@@ -400,9 +377,10 @@ function Prep-WU {
     #Install-WindowsUpdate
     Write-Verbose "Installing Windows Updates Complete!" -Verbose
 }
-Function Prep-MAV-Preload {
+Function Prep-MAV-Install {
 	#
-	#
+    cd C:\Admin
+    .\VipreInstall.msi /q /norestart
 	#
 }
 Function Prep-Kill-Defrag {
@@ -433,8 +411,8 @@ function Show-Menu {
      Write-Host "[5]: Install Windows Updates              "
      Write-Host "[6]: Install Lenovo System Update         "
 	 Write-Host "[7]: Update Office 365 Offline Installer  "
-     Write-Host "[8]: Pre-Load Managed AV                  "
-     Write-Host "[9]: Add Domain Users to local admin     "
+     Write-Host "[8]: Install Managed AV                   "
+     Write-Host "[9]: Add Domain Users to local admin      "
      Write-Host "[10]: Add BGInfo (Hostname on desktop)    "
      Write-Host "[11]: Disable Defrag (For SSDs)           "
      Write-Host "[12]: Remove All Office Installs          "
@@ -457,7 +435,7 @@ do { Show-Menu
         #$UserPassPlain = Read-Host -AsString
         #$UserPass = ConvertTo-SecureString -String $UserPassPlain -AsPlainText -Force
         #Prep-PC-User $UserName $UserPass
-        Prep-MAV-Preload
+        Prep-MAV-Install
         If ( $reply_laptop -notmatch "[yY]"){Prep-PC}
         Else{Prep-Laptop}
         Prep-User
@@ -495,7 +473,7 @@ do { Show-Menu
             $UserPassPlain = Read-Host -AsString
             $UserPass = ConvertTo-SecureString -String $UserPassPlain -AsPlainText -Force
             Prep-PC-User $UserName $UserPass}
-        Prep-MAV-Preload
+        Prep-MAV-Install
         If ( $reply_laptop -notmatch "[yY]"){Prep-PC}
         Else {Prep-Laptop}
         Prep-User
@@ -551,7 +529,7 @@ do { Show-Menu
         Clear-Host
     } '8'<# Pre-Load Managed AV #> {
         Clear-Host
-        Prep-MAV-Preload
+        Prep-MAV-Install
         Clear-Host
     } '9'<# Add Domain Users to local admin #> {
         Clear-Host
