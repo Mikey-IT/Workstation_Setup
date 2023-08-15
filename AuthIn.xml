@@ -42,7 +42,7 @@
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>C:\Admin\Auth\Logout.bat</Command>
+      <Command>C:\Admin\Auth\LogOn.bat</Command>
     </Exec>
   </Actions>
 </Task>
