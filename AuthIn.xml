@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="UTF-16"?>
-<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
     <Date>2022-11-22T15:20:09.995549</Date>
-    <Author>SysAdmin</Author>
+    <Author>LIFTSAFEINSPECT\mbusenbark</Author>
     <URI>\AuthIn</URI>
   </RegistrationInfo>
   <Triggers>
-    <SessionStateChangeTrigger>
+    <LogonTrigger>
       <Enabled>true</Enabled>
-      <StateChange>SessionLock</StateChange>
-    </SessionStateChangeTrigger>
-    <EventTrigger>
-      <Enabled>true</Enabled>
-      <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Security"&gt;&lt;Select Path="Security"&gt;*[System[Provider[@Name="Microsoft-Windows-Security-Auditing"] and EventID=4647]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
-    </EventTrigger>
+    </LogonTrigger>
   </Triggers>
   <Principals>
     <Principal id="Author">
@@ -36,6 +31,8 @@
     <Enabled>true</Enabled>
     <Hidden>true</Hidden>
     <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <DisallowStartOnRemoteAppSession>false</DisallowStartOnRemoteAppSession>
+    <UseUnifiedSchedulingEngine>true</UseUnifiedSchedulingEngine>
     <WakeToRun>false</WakeToRun>
     <ExecutionTimeLimit>PT72H</ExecutionTimeLimit>
     <Priority>7</Priority>
