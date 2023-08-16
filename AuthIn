@@ -6,9 +6,10 @@
     <URI>\AuthIn</URI>
   </RegistrationInfo>
   <Triggers>
-    <LogonTrigger>
+    <EventTrigger>
       <Enabled>true</Enabled>
-    </LogonTrigger>
+      <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Security"&gt;&lt;Select Path="Security"&gt;*[System[Provider[@Name='Microsoft-Windows-Security-Auditing'] and (Level=4 or Level=0) and (band(Keywords,9007199254740992)) and (EventID=4624 or EventID=4801)]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
+    </EventTrigger>
   </Triggers>
   <Principals>
     <Principal id="Author">
