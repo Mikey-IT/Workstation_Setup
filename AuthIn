@@ -6,10 +6,13 @@
     <URI>\AuthIn</URI>
   </RegistrationInfo>
   <Triggers>
-    <EventTrigger>
+    <LogonTrigger>
       <Enabled>true</Enabled>
-      <Subscription>&lt;QueryList&gt;&lt;Query Id="0" Path="Security"&gt;&lt;Select Path="Security"&gt;*[System[Provider[@Name='Microsoft-Windows-Security-Auditing'] and (Level=4 or Level=0) and (band(Keywords,9007199254740992)) and (EventID=4648)]]&lt;/Select&gt;&lt;/Query&gt;&lt;/QueryList&gt;</Subscription>
-    </EventTrigger>
+    </LogonTrigger>
+    <SessionStateChangeTrigger>
+      <Enabled>true</Enabled>
+      <StateChange>SessionUnlock</StateChange>
+    </SessionStateChangeTrigger>
   </Triggers>
   <Principals>
     <Principal id="Author">
